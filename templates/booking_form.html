@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book {{ destination.name }} - Travello{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+
+    <!-- Booking Form -->
+    <div class="booking_section" style="padding: 100px 0; background: #f8f9fa;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="booking_form_container">
+                        <div class="booking_header text-center">
+                            <h1>Book Your Trip</h1>
+                            <p class="text-muted">You're booking: <strong>{{ destination.name }}</strong></p>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="destination_preview">
+                                    <img src="{{ destination.img.url }}" alt="{{ destination.name }}" class="img-fluid rounded">
+                                    <div class="destination_info">
+                                        <h3>{{ destination.name }}</h3>
+                                        <p>{{ destination.desc|truncatewords:30 }}</p>
+                                        <div class="price_info">
+                                            <span class="price">${{ destination.price }}</span>
+                                            <span class="price_per">per person</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="booking_form_wrapper">
+                                    <form method="post" class="booking_form">
+                                        {% csrf_token %}
+                                        
+                                        <div class="form_section">
+                                            <h4>Trip Details</h4>
+                                            
+                                            <div class="form-group mb-3">
+                                                <label for="{{ form.travel_date.id_for_label }}" class="form-label">Travel Date</label>
+                                                {{ form.travel_date }}
+                                                {% if form.travel_date.errors %}
+                                                    <div class="text-danger small">{{ form.travel_date.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="form-group mb-3">
+                                                <label for="{{ form.number_of_travelers.id_for_label }}" class="form-label">Number of Travelers</label>
+                                                {{ form.number_of_travelers }}
+                                                {% if form.number_of_travelers.errors %}
+                                                    <div class="text-danger small">{{ form.number_of_travelers.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="booking_summary">
+                                            <h5>Booking Summary</h5>
+                                            <div class="summary_item">
+                                                <span>Destination:</span>
+                                                <span>{{ destination.name }}</span>
+                                            </div>
+                                            <div class="summary_item">
+                                                <span>Price per person:</span>
+                                                <span>${{ destination.price }}</span>
+                                            </div>
+                                            <div class="summary_item total">
+                                                <span>Total (estimated):</span>
+                                                <span id="total-price">${{ destination.price }}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form_actions">
+                                            <button type="submit" class="btn btn-primary btn-lg">Confirm Booking</button>
+                                            <a href="{% url 'destination_detail' destination.pk %}" class="btn btn-outline-secondary">Back to Details</a>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<style>
+.booking_form_container {
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.booking_header {
+    margin-bottom: 40px;
+}
+
+.booking_header h1 {
+    font-size: 36px;
+    font-weight: 300;
+    margin-bottom: 10px;
+}
+
+.destination_preview img {
+    height: 200px;
+    object-fit: cover;
+    margin-bottom: 20px;
+}
+
+.destination_info h3 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.price_info {
+    margin-top: 15px;
+}
+
+.price {
+    font-size: 28px;
+    font-weight: 700;
+    color: #007bff;
+}
+
+.price_per {
+    color: #666;
+    font-size: 14px;
+}
+
+.booking_form_wrapper {
+    padding-left: 30px;
+}
+
+.form_section {
+    margin-bottom: 30px;
+}
+
+.form_section h4 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    padding: 12px 15px;
+    font-size: 16px;
+    transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+}
+
+.booking_summary {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.booking_summary h5 {
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.summary_item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.summary_item.total {
+    font-weight: 700;
+    font-size: 18px;
+    color: #007bff;
+    border-bottom: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px solid #007bff;
+}
+
+.form_actions {
+    display: flex;
+    gap: 15px;
+}
+
+.form_actions .btn {
+    flex: 1;
+    padding: 15px;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .booking_form_wrapper {
+        padding-left: 0;
+        margin-top: 30px;
+    }
+    
+    .form_actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const travelersInput = document.getElementById('id_number_of_travelers');
+    const totalPriceElement = document.getElementById('total-price');
+    const pricePerPerson = {{ destination.price }};
+    
+    function updateTotal() {
+        const travelers = parseInt(travelersInput.value) || 1;
+        const total = travelers * pricePerPerson;
+        totalPriceElement.textContent = '$' + total;
+    }
+    
+    travelersInput.addEventListener('input', updateTotal);
+    updateTotal(); // Initial calculation
+});
+</script>
+{% endblock %}

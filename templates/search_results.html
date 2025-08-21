@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Search Results - Travello{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+
+    <!-- Search Results Section -->
+    <div class="search_results_section" style="padding: 100px 0; min-height: 100vh;">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="search_header text-center">
+                        <h1>Search Results</h1>
+                        {% if query %}
+                            <p class="text-muted">Showing results for: "<strong>{{ query }}</strong>"</p>
+                        {% endif %}
+                        {% if budget %}
+                            <p class="text-muted">Budget: Up to ${{ budget }}</p>
+                        {% endif %}
+                        {% if offer_only == 'true' %}
+                            <p class="text-muted">Showing: Special Offers Only</p>
+                        {% endif %}
+                        {% if travel_date %}
+                            <p class="text-muted">Travel Date: {{ travel_date }}</p>
+                        {% endif %}
+                        <p class="text-muted">{{ total_results }} destination{{ total_results|pluralize }} found</p>
+                        <p class="text-muted"><small>Results ordered: Special offers first, then alphabetically</small></p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if destinations %}
+            <div class="row" style="margin-top: 50px;">
+                {% for destination in destinations %}
+                <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
+                    <div class="search_result_card">
+                        <a href="{% url 'destination_detail' destination.pk %}" style="text-decoration: none; color: inherit;">
+                            <div class="destination_image">
+                                <img src="{{ destination.img.url }}" alt="{{ destination.name }}" style="width: 100%; height: 250px; object-fit: cover; border-radius: 10px;">
+                                {% if destination.offer %}
+                                    <div class="spec_offer_badge">
+                                        <span>Special Offer</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="destination_info" style="padding: 20px;">
+                                <h3 class="destination_name">{{ destination.name }}</h3>
+                                <p class="destination_desc">{{ destination.desc|truncatewords:20 }}</p>
+                                <div class="destination_price">
+                                    <span class="price">${{ destination.price }}</span>
+                                    <span class="per_person">per person</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="row" style="margin-top: 50px;">
+                <div class="col-12 text-center">
+                    <div class="no_results">
+                        <i class="fa fa-search" style="font-size: 60px; color: #ddd; margin-bottom: 20px;"></i>
+                        <h3>No destinations found</h3>
+                        <p class="text-muted">Try adjusting your search criteria or browse all destinations.</p>
+                        <a href="{% url 'destinations' %}" class="btn btn-primary">View All Destinations</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Back to Search -->
+            <div class="row" style="margin-top: 50px;">
+                <div class="col-12 text-center">
+                    <a href="{% url 'index' %}#search" class="btn btn-outline-primary">New Search</a>
+                    <a href="{% url 'destinations' %}" class="btn btn-primary ml-3">All Destinations</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .search_result_card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+    
+    .search_result_card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+    
+    .destination_name {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .destination_desc {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 15px;
+    }
+    
+    .destination_price {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+    }
+    
+    .price {
+        font-size: 20px;
+        font-weight: 700;
+        color: #6e8efb;
+    }
+    
+    .per_person {
+        font-size: 12px;
+        color: #888;
+    }
+    
+    .spec_offer_badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: linear-gradient(135deg, #ff6b35, #f7931e);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        box-shadow: 0 3px 10px rgba(255, 107, 53, 0.3);
+        animation: pulse-offer 2s infinite;
+    }
+    
+    @keyframes pulse-offer {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .no_results {
+        padding: 60px 20px;
+    }
+    
+    .btn-outline-primary {
+        border-color: #6e8efb;
+        color: #6e8efb;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: #6e8efb;
+        border-color: #6e8efb;
+    }
+    
+    .btn-primary {
+        background-color: #6e8efb;
+        border-color: #6e8efb;
+    }
+    
+    .btn-primary:hover {
+        background-color: #5c7cfa;
+        border-color: #5c7cfa;
+    }
+</style>
+{% endblock %}

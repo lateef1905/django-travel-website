@@ -1,0 +1,308 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load math_filters %}
+
+{% block title %}My Trips - Travello{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+
+    <!-- My Trips Section -->
+    <div class="my_trips_section" style="padding: 100px 0; background: #f8f9fa;">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="section_header text-center">
+                        <h1>My Trips</h1>
+                        <p class="text-muted">Welcome back, {{ user.get_full_name|default:user.username }}! Here are your bookings.</p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if bookings %}
+            <div class="row" style="margin-top: 50px;">
+                {% for booking in bookings %}
+                <div class="col-lg-6 col-md-6 mb-4">
+                    <div class="trip_card">
+                        <div class="trip_image">
+                            <img src="{{ booking.destination.img.url }}" alt="{{ booking.destination.name }}">
+                            <div class="status_badge status-{{ booking.status }}">
+                                {{ booking.get_status_display }}
+                            </div>
+                        </div>
+                        
+                        <div class="trip_content">
+                            <div class="trip_header">
+                                <h3 class="destination_name">{{ booking.destination.name }}</h3>
+                                <div class="booking_id">Booking #{{ booking.id }}</div>
+                            </div>
+                            
+                            <div class="trip_details">
+                                <div class="detail_row">
+                                    <i class="fa fa-calendar"></i>
+                                    <span>Travel Date: {{ booking.travel_date|date:"F d, Y" }}</span>
+                                </div>
+                                <div class="detail_row">
+                                    <i class="fa fa-users"></i>
+                                    <span>{{ booking.number_of_travelers }} traveler{{ booking.number_of_travelers|pluralize }}</span>
+                                </div>
+                                <div class="detail_row">
+                                    <i class="fa fa-clock-o"></i>
+                                    <span>Booked on {{ booking.created_at|date:"M d, Y" }}</span>
+                                </div>
+                                <div class="detail_row">
+                                    <i class="fa fa-dollar"></i>
+                                    <span>Total: ${{ booking.destination.price|mul:booking.number_of_travelers }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="trip_description">
+                                <p>{{ booking.destination.desc|truncatewords:15 }}</p>
+                            </div>
+                            
+                            <div class="trip_actions">
+                                <a href="{% url 'destination_detail' booking.destination.pk %}" class="btn btn-outline-primary">View Destination</a>
+                                {% if booking.status == 'pending' %}
+                                    <button class="btn btn-sm btn-outline-danger" onclick="alert('Contact support to cancel: support@travello.com')">Cancel</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Statistics -->
+            <div class="row" style="margin-top: 50px;">
+                <div class="col-12">
+                    <div class="trip_stats">
+                        <div class="row">
+                            <div class="col-md-3 text-center">
+                                <div class="stat_item">
+                                    <div class="stat_number">{{ bookings|length }}</div>
+                                    <div class="stat_label">Total Trips</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="stat_item">
+                                    <div class="stat_number">{{ bookings|length|sub:1|default:0 }}</div>
+                                    <div class="stat_label">Completed</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="stat_item">
+                                    <div class="stat_number">
+                                        {% for booking in bookings %}
+                                            {% if booking.status == 'pending' %}1{% endif %}
+                                        {% empty %}0{% endfor %}
+                                    </div>
+                                    <div class="stat_label">Upcoming</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="stat_item">
+                                    <div class="stat_number">
+                                        {% for booking in bookings %}
+                                            {% if forloop.first %}{{ booking.destination.price|mul:booking.number_of_travelers }}{% endif %}
+                                        {% empty %}0{% endfor %}
+                                    </div>
+                                    <div class="stat_label">Last Trip Value</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% else %}
+            <div class="row" style="margin-top: 50px;">
+                <div class="col-12">
+                    <div class="no_trips">
+                        <div class="text-center">
+                            <i class="fa fa-suitcase" style="font-size: 80px; color: #ccc; margin-bottom: 30px;"></i>
+                            <h3>No trips yet</h3>
+                            <p class="text-muted">You haven't booked any trips yet. Start planning your next adventure!</p>
+                            <a href="{% url 'destinations' %}" class="btn btn-primary btn-lg">Browse Destinations</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+<style>
+.section_header h1 {
+    font-size: 48px;
+    font-weight: 300;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.trip_card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+.trip_card:hover {
+    transform: translateY(-5px);
+}
+
+.trip_image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.trip_image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.status_badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.9);
+    color: #856404;
+}
+
+.status-confirmed {
+    background: rgba(40, 167, 69, 0.9);
+    color: white;
+}
+
+.status-cancelled {
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+}
+
+.trip_content {
+    padding: 25px;
+}
+
+.trip_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.destination_name {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+}
+
+.booking_id {
+    font-size: 12px;
+    color: #666;
+    background: #f8f9fa;
+    padding: 5px 10px;
+    border-radius: 15px;
+}
+
+.trip_details {
+    margin-bottom: 20px;
+}
+
+.detail_row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    color: #666;
+    font-size: 14px;
+}
+
+.detail_row i {
+    width: 20px;
+    margin-right: 10px;
+    color: #007bff;
+}
+
+.trip_description {
+    margin-bottom: 20px;
+    color: #666;
+    line-height: 1.6;
+}
+
+.trip_actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.trip_stats {
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.stat_item {
+    padding: 20px;
+}
+
+.stat_number {
+    font-size: 36px;
+    font-weight: 700;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.stat_label {
+    color: #666;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.no_trips {
+    background: white;
+    border-radius: 15px;
+    padding: 80px 40px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.no_trips h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+@media (max-width: 768px) {
+    .trip_header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .booking_id {
+        margin-top: 10px;
+    }
+    
+    .trip_actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .trip_actions .btn {
+        margin-bottom: 10px;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load math_filters %}
+
+{% block title %}Booking Confirmed - Travello{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+
+    <!-- Success Message -->
+    <div class="success_section" style="padding: 100px 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <div class="success_icon">
+                        <i class="fa fa-check-circle" style="font-size: 80px; color: #28a745; margin-bottom: 30px;"></i>
+                    </div>
+                    <h1 class="success_title">Booking Confirmed!</h1>
+                    <p class="success_subtitle">Thank you for choosing Travello. Your booking has been successfully submitted.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Details -->
+    <div class="booking_details_section" style="padding: 80px 0;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="booking_details_card">
+                        <h2 class="text-center mb-4">Booking Details</h2>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="detail_item">
+                                    <strong>Booking Reference:</strong>
+                                    <span>#{{ booking.id }}</span>
+                                </div>
+                                <div class="detail_item">
+                                    <strong>Destination:</strong>
+                                    <span>{{ booking.destination.name }}</span>
+                                </div>
+                                <div class="detail_item">
+                                    <strong>Travel Date:</strong>
+                                    <span>{{ booking.travel_date|date:"F d, Y" }}</span>
+                                </div>
+                                <div class="detail_item">
+                                    <strong>Number of Travelers:</strong>
+                                    <span>{{ booking.number_of_travelers }}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail_item">
+                                    <strong>Status:</strong>
+                                    <span class="status-badge status-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                                </div>
+                                <div class="detail_item">
+                                    <strong>Booking Date:</strong>
+                                    <span>{{ booking.created_at|date:"F d, Y" }}</span>
+                                </div>
+                                <div class="detail_item">
+                                    <strong>Total Price:</strong>
+                                    <span class="total_price">${{ booking.destination.price|mul:booking.number_of_travelers }}</span>
+                                </div>
+                                <div class="detail_item">
+                                    <strong>Customer:</strong>
+                                    <span>{{ booking.user.get_full_name|default:booking.user.username }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="booking_image text-center" style="margin-top: 30px;">
+                            <img src="{{ booking.destination.img.url }}" alt="{{ booking.destination.name }}" style="width: 100%; max-width: 400px; height: 200px; object-fit: cover; border-radius: 10px;">
+                        </div>
+                        
+                        <div class="next_steps" style="margin-top: 40px;">
+                            <h4>What's Next?</h4>
+                            <ul class="steps_list">
+                                <li><i class="fa fa-envelope"></i> You'll receive a confirmation email shortly</li>
+                                <li><i class="fa fa-phone"></i> Our team will contact you within 24 hours</li>
+                                <li><i class="fa fa-calendar"></i> Final itinerary will be sent 7 days before travel</li>
+                                <li><i class="fa fa-suitcase"></i> Pack your bags and get ready for an amazing trip!</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="action_buttons text-center" style="margin-top: 40px;">
+                            <a href="{% url 'my_trips' %}" class="btn btn-primary btn-lg">View My Trips</a>
+                            <a href="{% url 'destinations' %}" class="btn btn-outline-secondary btn-lg">Book Another Trip</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<style>
+.success_title {
+    font-size: 48px;
+    font-weight: 300;
+    margin-bottom: 20px;
+}
+
+.success_subtitle {
+    font-size: 20px;
+    opacity: 0.9;
+}
+
+.booking_details_card {
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.detail_item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.detail_item strong {
+    color: #333;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-confirmed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.total_price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #007bff;
+}
+
+.next_steps {
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 10px;
+}
+
+.next_steps h4 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.steps_list {
+    list-style: none;
+    padding: 0;
+}
+
+.steps_list li {
+    padding: 10px 0;
+    color: #666;
+}
+
+.steps_list i {
+    color: #007bff;
+    margin-right: 15px;
+    width: 20px;
+}
+
+.action_buttons .btn {
+    margin: 0 10px;
+    padding: 15px 30px;
+}
+
+@media (max-width: 768px) {
+    .success_title {
+        font-size: 36px;
+    }
+    
+    .action_buttons .btn {
+        display: block;
+        margin: 10px 0;
+        width: 100%;
+    }
+    
+    .detail_item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .detail_item span {
+        margin-top: 5px;
+    }
+}
+</style>
+{% endblock %}
