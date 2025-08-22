@@ -2,7 +2,7 @@
 {% load static %}
 {% load math_filters %}
 
-{% block title %}My Trips - Travello{% endblock %}
+{% block title %}My Trips - Beyond Borders{% endblock %}
 
 {% block content %}
     <!-- Header -->
@@ -64,7 +64,7 @@
                             <div class="trip_actions">
                                 <a href="{% url 'destination_detail' booking.destination.pk %}" class="btn btn-outline-primary">View Destination</a>
                                 {% if booking.status == 'pending' %}
-                                    <button class="btn btn-sm btn-outline-danger" onclick="alert('Contact support to cancel: support@travello.com')">Cancel</button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="alert('Contact support to cancel: support@beyondborders.com')">Cancel</button>
                                 {% endif %}
                             </div>
                         </div>

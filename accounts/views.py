@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
-from travello.forms import CustomUserCreationForm
+from beyondborders.forms import CustomUserCreationForm
 
 def register(request):
     if request.method == 'POST':
