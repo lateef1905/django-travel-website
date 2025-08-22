@@ -19,19 +19,126 @@
                                 <span>Special Offer</span>
                             </div>
                         {% endif %}
+                        {% if user.is_authenticated %}
+                            <div class="wishlist-toggle" data-destination="{{ destination.pk }}">
+                                <i class="fa fa-heart{% if not is_in_wishlist %}-o{% endif %}"></i>
+                            </div>
+                        {% endif %}
                     </div>
+                    
                     <div class="destination_info" style="margin-top: 30px;">
-                        <h1 class="destination_name">{{ destination.name }}</h1>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h1 class="destination_name">{{ destination.name }}</h1>
+                                {% if destination.location %}
+                                    <p class="destination_location">
+                                        <i class="fa fa-map-marker"></i> {{ destination.location }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                            <div class="destination_rating text-right">
+                                {% with avg_rating=destination.average_rating %}
+                                    {% if avg_rating > 0 %}
+                                        <div class="rating-stars">
+                                            {% for i in "12345" %}
+                                                <i class="fa fa-star{% if forloop.counter > avg_rating %}-o{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="rating-text">
+                                            {{ avg_rating|floatformat:1 }}/5 ({{ destination.review_count }} review{{ destination.review_count|pluralize }})
+                                        </div>
+                                    {% else %}
+                                        <div class="no-rating text-muted">No reviews yet</div>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                        
                         <div class="destination_description" style="margin: 20px 0;">
                             <p>{{ destination.desc }}</p>
                         </div>
                     </div>
+
+                    <!-- Map Section -->
+                    {% if destination.latitude and destination.longitude %}
+                        <div class="map-section mt-4">
+                            <h3>Location</h3>
+                            <div id="map" style="height: 300px; border-radius: 10px; margin-top: 15px;"></div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Reviews Section -->
+                    <div class="reviews-section mt-5">
+                        <h3>Reviews & Ratings</h3>
+                        
+                        {% if user.is_authenticated %}
+                            {% if user_review %}
+                                <div class="user-review-edit mb-4">
+                                    <h5>Your Review</h5>
+                                    <div class="existing-review">
+                                        <div class="review-stars">
+                                            {% for i in "12345" %}
+                                                <i class="fa fa-star{% if forloop.counter > user_review.rating %}-o{% endif %}"></i>
+                                            {% endfor %}
+                                            <span class="review-date">{{ user_review.created_at|date:"M d, Y" }}</span>
+                                        </div>
+                                        <p class="review-comment">{{ user_review.comment }}</p>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="toggleReviewForm()">Edit Review</button>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="review-form {% if user_review %}d-none{% endif %}" id="reviewForm">
+                                <h5>{% if user_review %}Edit Your Review{% else %}Leave a Review{% endif %}</h5>
+                                <form method="post" action="{% url 'add_review' destination.pk %}">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label>Rating</label>
+                                        {{ review_form.rating }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Your Experience</label>
+                                        {{ review_form.comment }}
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                                    {% if user_review %}
+                                        <button type="button" class="btn btn-secondary" onclick="toggleReviewForm()">Cancel</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        {% else %}
+                            <div class="login-for-review mb-4">
+                                <p class="text-muted">Please <a href="{% url 'login' %}">log in</a> to leave a review.</p>
+                            </div>
+                        {% endif %}
+
+                        <!-- Display Reviews -->
+                        <div class="reviews-list mt-4">
+                            {% for review in reviews %}
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                                        <div class="review-stars">
+                                            {% for i in "12345" %}
+                                                <i class="fa fa-star{% if forloop.counter > review.rating %}-o{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="review-date">{{ review.created_at|date:"M d, Y" }}</span>
+                                    </div>
+                                    <p class="review-comment">{{ review.comment }}</p>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted">No reviews yet. Be the first to share your experience!</p>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="col-lg-4">
                     <div class="booking_card">
                         <div class="price_section">
                             <div class="price_label">Price per person</div>
-                            <div class="price_value">${{ destination.price }}</div>
+                            <div class="price_value">{{ destination.currency }} ${{ destination.price }}</div>
                         </div>
                         
                         {% if user.is_authenticated %}
@@ -81,7 +188,67 @@
     font-size: 48px;
     font-weight: 300;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+}
+
+.destination_location {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 0;
+}
+
+.destination_location i {
+    margin-right: 5px;
+}
+
+.destination_rating .rating-stars {
+    margin-bottom: 5px;
+}
+
+.destination_rating .fa-star {
+    color: #ffd700;
+    font-size: 18px;
+}
+
+.destination_rating .fa-star-o {
+    color: #ddd;
+    font-size: 18px;
+}
+
+.destination_rating .rating-text {
+    font-size: 14px;
+    color: #666;
+}
+
+.wishlist-toggle {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(255,255,255,0.9);
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.wishlist-toggle:hover {
+    background: white;
+    transform: scale(1.1);
+}
+
+.wishlist-toggle .fa-heart {
+    color: #ff4757;
+    font-size: 20px;
+}
+
+.wishlist-toggle .fa-heart-o {
+    color: #ccc;
+    font-size: 20px;
 }
 
 .destination_description {
@@ -156,11 +323,139 @@
     border-radius: 25px;
     font-weight: 600;
     font-size: 14px;
+    z-index: 5;
 }
 
 .btn-block {
     width: 100%;
     margin-bottom: 15px;
 }
+
+/* Reviews Section */
+.reviews-section {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.review-form {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.review-item {
+    border-bottom: 1px solid #eee;
+    padding: 20px 0;
+}
+
+.review-item:last-child {
+    border-bottom: none;
+}
+
+.review-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.review-stars .fa-star {
+    color: #ffd700;
+    font-size: 14px;
+}
+
+.review-stars .fa-star-o {
+    color: #ddd;
+    font-size: 14px;
+}
+
+.review-date {
+    color: #999;
+    font-size: 12px;
+    margin-left: auto;
+}
+
+.review-comment {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+.existing-review {
+    background: #e9ecef;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Map Section */
+.map-section {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
 </style>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+<script>
+// Wishlist functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const wishlistBtn = document.querySelector('.wishlist-toggle');
+    
+    if (wishlistBtn) {
+        wishlistBtn.addEventListener('click', function() {
+            const destinationId = this.dataset.destination;
+            
+            fetch(`/wishlist/toggle/${destinationId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const icon = this.querySelector('i');
+                if (data.action === 'added') {
+                    icon.className = 'fa fa-heart';
+                } else {
+                    icon.className = 'fa fa-heart-o';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    }
+    
+    // Initialize map if coordinates are available
+    {% if destination.latitude and destination.longitude %}
+        // Leaflet Map
+        const map = L.map('map').setView([{{ destination.latitude }}, {{ destination.longitude }}], 10);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        L.marker([{{ destination.latitude }}, {{ destination.longitude }}])
+            .addTo(map)
+            .bindPopup('{{ destination.name }}{% if destination.location %}<br>{{ destination.location }}{% endif %}')
+            .openPopup();
+    {% endif %}
+});
+
+function toggleReviewForm() {
+    const form = document.getElementById('reviewForm');
+    form.classList.toggle('d-none');
+}
+</script>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
 {% endblock %}

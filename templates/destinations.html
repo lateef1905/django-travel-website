@@ -7,16 +7,59 @@
     <!-- Header -->
     {% include 'includes/header.html' %}
 
-    <!-- Destinations Section -->
-    <div class="destinations" style="padding: 100px 0;">
+    <!-- Search and Filters Section -->
+    <div class="search-section" style="background: #f8f9fa; padding: 50px 0;">
         <div class="container">
             <div class="row">
-                <div class="col text-center">
-                    <h1 class="section_title">Amazing Destinations</h1>
-                    <p class="section_subtitle">Explore all Available Destinations</p>
+                <div class="col-12">
+                    <div class="search-form-container bg-white p-4 rounded shadow-sm">
+                        <form method="GET" action="{% url 'destinations' %}" class="search-form">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    {{ search_form.query }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ search_form.location }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ search_form.min_price }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ search_form.max_price }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ search_form.min_rating }}
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fa fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        {{ search_form.offer_only }}
+                                        <label class="form-check-label" for="{{ search_form.offer_only.id_for_label }}">
+                                            Special Offers Only
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">{{ destinations|length }} destination{{ destinations|length|pluralize }} found</small>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-            <div class="row destinations_row" style="margin-top: 50px;">
+        </div>
+    </div>
+
+    <!-- Destinations Section -->
+    <div class="destinations" style="padding: 50px 0;">
+        <div class="container">
+            <div class="row destinations_row">
                 {% for destination in destinations %}
                 <div class="col-lg-4 col-md-6 col-sm-6">
                     <div class="destination_item" style="margin-bottom: 30px;">
@@ -27,13 +70,40 @@
                                     <a href="{% url 'destination_detail' destination.pk %}">Special Offer</a>
                                 </div>
                             {% endif %}
+                            {% if user.is_authenticated %}
+                                <div class="wishlist-btn" data-destination="{{ destination.pk }}">
+                                    <i class="fa fa-heart{% if destination.pk not in wishlist_destinations %}-o{% endif %}"></i>
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="destination_content" style="padding: 20px;">
                             <h3 class="destination_title"><a href="{% url 'destination_detail' destination.pk %}">{{ destination.name }}</a></h3>
-                            <p class="destination_text">{{ destination.desc|truncatewords:20 }}</p>
+                            {% if destination.location %}
+                                <p class="destination_location text-muted mb-2">
+                                    <i class="fa fa-map-marker"></i> {{ destination.location }}
+                                </p>
+                            {% endif %}
+                            <p class="destination_text">{{ destination.desc|truncatewords:15 }}</p>
+                            
+                            <!-- Rating Display -->
+                            <div class="destination_rating mb-2">
+                                {% with avg_rating=destination.average_rating %}
+                                    {% if avg_rating > 0 %}
+                                        <div class="stars">
+                                            {% for i in "12345" %}
+                                                <i class="fa fa-star{% if forloop.counter > avg_rating %}-o{% endif %}"></i>
+                                            {% endfor %}
+                                            <span class="rating-text">({{ avg_rating|floatformat:1 }}/5) - {{ destination.review_count }} review{{ destination.review_count|pluralize }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">No reviews yet</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                            
                             <div class="destination_price">
                                 <span class="price">${{ destination.price }}</span>
-                                <span class="price_per">per person</span>
+                                <span class="price_per">{{ destination.currency }} per person</span>
                             </div>
                             <div class="destination_buttons" style="margin-top: 15px;">
                                 <a href="{% url 'destination_detail' destination.pk %}" class="btn btn-outline-primary">View Details</a>
@@ -48,10 +118,50 @@
                 </div>
                 {% empty %}
                 <div class="col-12 text-center">
-                    <p>No destinations available at the moment.</p>
+                    <div class="no-results">
+                        <i class="fa fa-search" style="font-size: 64px; color: #ddd; margin-bottom: 20px;"></i>
+                        <h3>No destinations found</h3>
+                        <p class="text-muted">Try adjusting your search criteria or browse all destinations.</p>
+                        <a href="{% url 'destinations' %}" class="btn btn-primary">Show All Destinations</a>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <div class="row">
+                    <div class="col-12">
+                        <nav aria-label="Destinations pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location }}{% endif %}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for page_num in page_obj.paginator.page_range %}
+                                    {% if page_num == page_obj.number %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ page_num }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_num }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location }}{% endif %}">{{ page_num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location }}{% endif %}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 
@@ -62,6 +172,7 @@
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     overflow: hidden;
     transition: transform 0.3s ease;
+    position: relative;
 }
 
 .destination_item:hover {
@@ -95,14 +206,15 @@
 
 .spec_offer {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 15px;
+    right: 15px;
     background: #ff4757;
     color: white;
-    padding: 5px 15px;
+    padding: 5px 12px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
+    z-index: 2;
 }
 
 .spec_offer a {
@@ -110,15 +222,99 @@
     text-decoration: none;
 }
 
-.section_title {
-    font-size: 48px;
-    font-weight: 300;
-    margin-bottom: 20px;
+.wishlist-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(255,255,255,0.9);
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    z-index: 2;
 }
 
-.section_subtitle {
-    font-size: 18px;
+.wishlist-btn:hover {
+    background: white;
+}
+
+.wishlist-btn .fa-heart {
+    color: #ff4757;
+    font-size: 16px;
+}
+
+.wishlist-btn .fa-heart-o {
+    color: #ccc;
+    font-size: 16px;
+}
+
+.destination_rating .stars {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.destination_rating .fa-star {
+    color: #ffd700;
+    font-size: 14px;
+}
+
+.destination_rating .fa-star-o {
+    color: #ddd;
+    font-size: 14px;
+}
+
+.destination_rating .rating-text {
+    font-size: 12px;
     color: #666;
+    margin-left: 8px;
+}
+
+.search-form-container {
+    margin-bottom: 30px;
+}
+
+.no-results {
+    padding: 60px 0;
+}
+
+.destination_location {
+    font-size: 14px;
 }
 </style>
+
+<script>
+// Wishlist functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const wishlistBtns = document.querySelectorAll('.wishlist-btn');
+    
+    wishlistBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const destinationId = this.dataset.destination;
+            
+            fetch(`/wishlist/toggle/${destinationId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const icon = this.querySelector('i');
+                if (data.action === 'added') {
+                    icon.className = 'fa fa-heart';
+                } else {
+                    icon.className = 'fa fa-heart-o';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
 {% endblock %}

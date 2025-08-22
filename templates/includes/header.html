@@ -15,7 +15,13 @@
                                 <li class="{% if 'destinations' in request.resolver_match.url_name %}active{% endif %}">
                                     <a href="{% url 'destinations' %}">Destinations</a>
                                 </li>
+                                <li class="{% if 'blog' in request.resolver_match.url_name %}active{% endif %}">
+                                    <a href="{% url 'blog' %}">Travel Guides</a>
+                                </li>
                                 {% if user.is_authenticated %}
+                                    <li class="{% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
+                                        <a href="{% url 'wishlist' %}">Wishlist</a>
+                                    </li>
                                     <li class="{% if request.resolver_match.url_name == 'my_trips' %}active{% endif %}">
                                         <a href="{% url 'my_trips' %}">My Trips</a>
                                     </li>
@@ -46,7 +52,9 @@
         <ul>
             <li><a href="{% url 'index' %}">Home</a></li>
             <li><a href="{% url 'destinations' %}">Destinations</a></li>
+            <li><a href="{% url 'blog' %}">Travel Guides</a></li>
             {% if user.is_authenticated %}
+                <li><a href="{% url 'wishlist' %}">Wishlist</a></li>
                 <li><a href="{% url 'my_trips' %}">My Trips</a></li>
                 <li><a href="{% url 'logout' %}">Logout</a></li>
             {% else %}

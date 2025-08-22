@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Travel Guides & Tips - Beyond Borders{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+
+    <!-- Blog Section -->
+    <div class="blog-section" style="padding: 100px 0 50px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="section-header text-center mb-5">
+                        <h1 class="section_title">Travel Guides & Tips</h1>
+                        <p class="section_subtitle">Discover expert travel advice and inspiring stories</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if blog_posts %}
+                <div class="row">
+                    {% for post in blog_posts %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <article class="blog-card">
+                                {% if post.image %}
+                                    <div class="blog-image">
+                                        <a href="{% url 'blog_detail' post.slug %}">
+                                            <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                                        </a>
+                                        <div class="blog-date">
+                                            <span class="day">{{ post.created_at|date:"d" }}</span>
+                                            <span class="month">{{ post.created_at|date:"M" }}</span>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                <div class="blog-content">
+                                    <div class="blog-meta">
+                                        <span class="author">
+                                            <i class="fa fa-user"></i> {{ post.author.get_full_name|default:post.author.username }}
+                                        </span>
+                                        <span class="date">
+                                            <i class="fa fa-calendar"></i> {{ post.created_at|date:"M d, Y" }}
+                                        </span>
+                                    </div>
+                                    <h3 class="blog-title">
+                                        <a href="{% url 'blog_detail' post.slug %}">{{ post.title }}</a>
+                                    </h3>
+                                    <p class="blog-excerpt">{{ post.content|truncatewords:20|striptags }}</p>
+                                    <a href="{% url 'blog_detail' post.slug %}" class="read-more">Read More <i class="fa fa-arrow-right"></i></a>
+                                </div>
+                            </article>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <div class="row">
+                        <div class="col-12">
+                            <nav aria-label="Blog pagination">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for page_num in page_obj.paginator.page_range %}
+                                        {% if page_num == page_obj.number %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_num }}</span>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="row">
+                    <div class="col-12">
+                        <div class="no-posts text-center">
+                            <i class="fa fa-book" style="font-size: 64px; color: #ddd; margin-bottom: 20px;"></i>
+                            <h3>No blog posts yet</h3>
+                            <p class="text-muted">Check back soon for amazing travel guides and tips!</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <style>
+        .blog-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .blog-image {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .blog-image img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .blog-card:hover .blog-image img {
+            transform: scale(1.05);
+        }
+
+        .blog-date {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .blog-date .day {
+            display: block;
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .blog-date .month {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .blog-content {
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blog-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .blog-meta i {
+            margin-right: 5px;
+        }
+
+        .blog-title {
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .blog-title a {
+            color: #333;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .blog-title a:hover {
+            color: #007bff;
+        }
+
+        .blog-excerpt {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        .read-more {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .read-more:hover {
+            color: #0056b3;
+        }
+
+        .section_title {
+            font-size: 48px;
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+
+        .section_subtitle {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .no-posts {
+            padding: 60px 0;
+        }
+    </style>
+{% endblock %}

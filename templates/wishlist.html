@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Wishlist - Beyond Borders{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+
+    <!-- Wishlist Section -->
+    <div class="wishlist-section" style="padding: 100px 0 50px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="section-header text-center mb-5">
+                        <h1 class="section_title">My Wishlist</h1>
+                        <p class="section_subtitle">Your favorite destinations saved for later</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if wishlist_items %}
+                <div class="row">
+                    {% for item in wishlist_items %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="wishlist-card">
+                                <div class="card-image">
+                                    <img src="{{ item.destination.img.url }}" alt="{{ item.destination.name }}">
+                                    {% if item.destination.offer %}
+                                        <div class="spec_offer">Special Offer</div>
+                                    {% endif %}
+                                    <div class="remove-wishlist" data-destination="{{ item.destination.pk }}">
+                                        <i class="fa fa-times"></i>
+                                    </div>
+                                </div>
+                                <div class="card-content">
+                                    <h3>{{ item.destination.name }}</h3>
+                                    {% if item.destination.location %}
+                                        <p class="location text-muted mb-2">
+                                            <i class="fa fa-map-marker"></i> {{ item.destination.location }}
+                                        </p>
+                                    {% endif %}
+                                    <p class="description">{{ item.destination.desc|truncatewords:15 }}</p>
+                                    
+                                    <!-- Rating -->
+                                    <div class="rating mb-2">
+                                        {% with avg_rating=item.destination.average_rating %}
+                                            {% if avg_rating > 0 %}
+                                                <div class="stars">
+                                                    {% for i in "12345" %}
+                                                        <i class="fa fa-star{% if forloop.counter > avg_rating %}-o{% endif %}"></i>
+                                                    {% endfor %}
+                                                    <span>({{ avg_rating|floatformat:1 }})</span>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">No reviews yet</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    
+                                    <div class="price mb-3">
+                                        <span class="amount">${{ item.destination.price }}</span>
+                                        <span class="currency">{{ item.destination.currency }} per person</span>
+                                    </div>
+                                    
+                                    <div class="card-actions">
+                                        <a href="{% url 'destination_detail' item.destination.pk %}" class="btn btn-outline-primary">View Details</a>
+                                        <a href="{% url 'book_destination' item.destination.pk %}" class="btn btn-primary">Book Now</a>
+                                    </div>
+                                    
+                                    <div class="added-date text-muted mt-2">
+                                        <small>Added {{ item.added_at|date:"M d, Y" }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <div class="row">
+                        <div class="col-12">
+                            <nav aria-label="Wishlist pagination">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for page_num in page_obj.paginator.page_range %}
+                                        {% if page_num == page_obj.number %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_num }}</span>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="row">
+                    <div class="col-12">
+                        <div class="empty-wishlist text-center">
+                            <i class="fa fa-heart-o" style="font-size: 64px; color: #ddd; margin-bottom: 20px;"></i>
+                            <h3>Your wishlist is empty</h3>
+                            <p class="text-muted mb-4">Start exploring amazing destinations and save your favorites!</p>
+                            <a href="{% url 'destinations' %}" class="btn btn-primary">Explore Destinations</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <style>
+        .wishlist-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .wishlist-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-image {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .wishlist-card:hover .card-image img {
+            transform: scale(1.05);
+        }
+
+        .spec_offer {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ff4757;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .remove-wishlist {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            z-index: 2;
+        }
+
+        .remove-wishlist:hover {
+            background: #ff4757;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-content h3 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .location {
+            font-size: 14px;
+        }
+
+        .description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .rating .stars {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .rating .fa-star {
+            color: #ffd700;
+            font-size: 14px;
+        }
+
+        .rating .fa-star-o {
+            color: #ddd;
+            font-size: 14px;
+        }
+
+        .price .amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: #007bff;
+        }
+
+        .price .currency {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .card-actions .btn {
+            flex: 1;
+        }
+
+        .section_title {
+            font-size: 48px;
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+
+        .section_subtitle {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .empty-wishlist {
+            padding: 60px 0;
+        }
+    </style>
+
+    <script>
+        // Remove from wishlist functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const removeBtns = document.querySelectorAll('.remove-wishlist');
+            
+            removeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const destinationId = this.dataset.destination;
+                    
+                    fetch(`/wishlist/toggle/${destinationId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.action === 'removed') {
+                            // Remove the card with animation
+                            const card = this.closest('.col-lg-4');
+                            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                            card.style.opacity = '0';
+                            card.style.transform = 'scale(0.9)';
+                            
+                            setTimeout(() => {
+                                card.remove();
+                                
+                                // Check if no items left
+                                const remainingCards = document.querySelectorAll('.wishlist-card');
+                                if (remainingCards.length === 0) {
+                                    location.reload();
+                                }
+                            }, 300);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            });
+        });
+    </script>
+{% endblock %}

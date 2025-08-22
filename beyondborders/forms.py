@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Booking
+from .models import Booking, Review
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
@@ -74,3 +74,69 @@ class BookingForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['travel_date'].widget.attrs.update({'class': 'form-control'})
         self.fields['number_of_travelers'].widget.attrs.update({'class': 'form-control'})
+
+class ReviewForm(forms.ModelForm):
+    """Form for users to submit reviews"""
+    RATING_CHOICES = [
+        (1, '1 Star'),
+        (2, '2 Stars'),
+        (3, '3 Stars'),
+        (4, '4 Stars'),
+        (5, '5 Stars'),
+    ]
+    
+    rating = forms.ChoiceField(
+        choices=RATING_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    comment = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'Share your experience about this destination...'
+        })
+    )
+    
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']
+
+class DestinationSearchForm(forms.Form):
+    """Enhanced search form for destinations"""
+    query = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search destinations...'
+        })
+    )
+    location = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Location...'
+        })
+    )
+    min_price = forms.IntegerField(
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Min price'
+        })
+    )
+    max_price = forms.IntegerField(
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Max price'
+        })
+    )
+    min_rating = forms.ChoiceField(
+        choices=[('', 'Any Rating')] + [(i, f'{i}+ Stars') for i in range(1, 6)],
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    offer_only = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
